@@ -7,6 +7,7 @@ import lombok.Data;
 @Builder
 public class IndividualResult {
 
+    private String nameThreads;
     private Long callTime;
 
 }

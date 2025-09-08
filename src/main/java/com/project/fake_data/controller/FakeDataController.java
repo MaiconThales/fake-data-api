@@ -21,9 +21,10 @@ public class FakeDataController {
     public ResponseEntity<ResultDTO> sendFakeData(
             @RequestParam String url,
             @RequestParam(defaultValue = "1") int quantity,
+            @RequestParam(defaultValue = "1") int threads,
             @RequestBody String jsonTemplate) throws JsonProcessingException {
         JsonNode template = objectMapper.readTree(jsonTemplate);
-        return ResponseEntity.ok(this.fakeDataService.actionFakeData(template, quantity, url));
+        return ResponseEntity.ok(this.fakeDataService.actionFakeData(template, quantity, threads, url));
     }
 
 }

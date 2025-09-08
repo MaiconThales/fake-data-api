@@ -11,6 +11,7 @@ public class ResultDTO {
 
     private String path;
     private long totalTime;
+    private long amountOfDataSent;
     List<IndividualResult> results;
 
 }

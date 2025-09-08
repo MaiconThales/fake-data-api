@@ -5,7 +5,7 @@ import com.project.fake_data.dto.ResultDTO;
 
 public interface FakeDataService {
 
-    ResultDTO actionFakeData(JsonNode template, int quantity, String url);
+    ResultDTO actionFakeData(JsonNode template, int quantity, int threads, String url);
 
     JsonNode generateFakeJson(JsonNode template);
 

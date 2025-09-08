@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.*;
 import com.github.javafaker.Faker;
 import com.project.fake_data.dto.IndividualResult;
 import com.project.fake_data.dto.ResultDTO;
+import com.project.fake_data.exception.ThreadException;
 import com.project.fake_data.service.FakeDataService;
 import com.project.fake_data.service.HttpSenderService;
 import com.project.fake_data.utils.DateUtils;
@@ -16,10 +17,12 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 @Service
 public class FakeDataServiceImpl implements FakeDataService {
@@ -35,20 +38,36 @@ public class FakeDataServiceImpl implements FakeDataService {
     }
 
     @Override
-    public ResultDTO actionFakeData(JsonNode template, int quantity, String url) {
-        List<IndividualResult> individualResult = new ArrayList<>();
+    public ResultDTO actionFakeData(JsonNode template, int quantity, int threads, String url) {
+        List<IndividualResult> individualResult = Collections.synchronizedList(new ArrayList<>());
 
-        for (int i = 0; i < quantity; i++) {
-            JsonNode fakeJson = this.generateFakeJson(template);
-            LocalDateTime init = LocalDateTime.now();
-            this.httpSenderService.send(url, fakeJson);
-            LocalDateTime end = LocalDateTime.now();
+        try (ExecutorService executor = Executors.newFixedThreadPool(threads)) {
+            List<Callable<Void>> tasks = new ArrayList<>();
+            for (int i = 0; i < threads; i++) {
+                tasks.add(() -> {
+                    for (int j = 0; j < quantity; j++) {
+                        JsonNode fakeJson = this.generateFakeJson(template);
+                        LocalDateTime init = LocalDateTime.now();
+                        this.httpSenderService.send(url, fakeJson);
+                        LocalDateTime end = LocalDateTime.now();
 
-            individualResult.add(
-                    IndividualResult.builder()
-                            .callTime(Duration.between(init, end).getSeconds())
-                            .build()
-            );
+                        individualResult.add(
+                                IndividualResult.builder()
+                                        .nameThreads(Thread.currentThread().getName())
+                                        .callTime(Duration.between(init, end).getSeconds())
+                                        .build()
+                        );
+                    }
+                    return null;
+                });
+            }
+
+            try {
+                executor.invokeAll(tasks);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new ThreadException("Error executing threads");
+            }
         }
 
         return ResultDTO.builder()
@@ -56,7 +75,14 @@ public class FakeDataServiceImpl implements FakeDataService {
                 .totalTime(
                         individualResult.stream().mapToLong(IndividualResult::getCallTime).sum()
                 )
-                .results(individualResult)
+                .amountOfDataSent(
+                        individualResult.size()
+                )
+                .results(
+                        individualResult.stream()
+                                .sorted(Comparator.comparing(IndividualResult::getNameThreads))
+                                .toList()
+                )
                 .build();
     }
 

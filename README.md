@@ -46,6 +46,7 @@ Gera e envia dados fictícios para teste de performance, retornando métricas de
 {
   "path": "/fake-data/send",
   "totalTime": 1250,
+  "amountOfDataSent": 2,
   "results": [
     {
       "callTime": 150
@@ -62,12 +63,13 @@ Gera e envia dados fictícios para teste de performance, retornando métricas de
 
 **Estrutura da Resposta:**
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `path` | String | Endpoint testado |
-| `totalTime` | Long | Tempo total de execução em milissegundos |
+| Campo | Tipo | Descrição                                       |
+|-------|------|-------------------------------------------------|
+| `path` | String | Endpoint testado                                |
+| `totalTime` | Long | Tempo total de execução em milissegundos        |
+| `amountOfDataSent` | Long | Quantidade de dados enviados                    |
 | `results` | Array | Lista com resultados individuais de cada chamada |
-| `results[].callTime` | Long | Tempo de execução individual em milissegundos |
+| `results[].callTime` | Long | Tempo de execução individual em milissegundos   |
 
 ## 🚀 Como Executar
 
@@ -81,8 +83,8 @@ Gera e envia dados fictícios para teste de performance, retornando métricas de
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/seu-usuario/api-performance-tester.git
-cd api-performance-tester
+git clone https://github.com/MaiconThales/fake-data-api.git
+cd fake-data-api
 ```
 
 2. Instale as dependências:
@@ -109,6 +111,7 @@ A API estará disponível em `http://localhost:8081`
 {
   "path": "/fake-data/send",
   "totalTime": 1250,
+  "amountOfDataSent": 4,
   "results": [
     {
       "callTime": 150
@@ -130,8 +133,10 @@ src/
 ├── main/
 │   ├── java/
 │   │   └── com/example/apitest/
+│   │       ├── config/        # Configurações da aplicação
 │   │       ├── controller/    # Controllers REST
 │   │       ├── dto/           # Data Transfer Objects
+│   │       ├── exception/     # Tratamento de exceções
 │   │       ├── service/       # Lógica de negócio
 │   │       └── util/          # Utilitários
 │   └── resources/
